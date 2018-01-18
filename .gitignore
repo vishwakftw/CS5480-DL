@@ -1,5 +1,5 @@
-#pdflatex generated files
-.pdf
-.aux
-.log
-.out
+# pdflatex generated files
+*.pdf
+*.aux
+*.log
+*.out

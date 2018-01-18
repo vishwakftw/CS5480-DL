@@ -3,6 +3,8 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{hyperref}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand{\argmax}{\mathop{\mathrm{argmax}}}
 
 \title{Solutions to the Assignment - 0 : CS5480 - \\
 Deep Learning}
@@ -28,6 +30,11 @@ Now the expected payout from the die roll can be given by \(\mathbb{E}[f(X)]\). 
 The expected payout to a visitor is \(\boxed{\text{Rs.} -\frac{-25}{6}}\), which is a loss. Hence, this might not be a good plan, and the organizers will not make money (in expectation).
 \end{flushleft}
 
+\section*{Question 4}
+\begin{flushleft}
+The first perceptron (bias-less) would learn a function \(f\) by learning the parameters \(w_1, w_2\) to produce a classifier whose boundary is \(w_1 x_1 + w_2 x_2 = 0\). Now, if there was a fixed bias \(( = 1)\), then the resulting classifier with a decision boundary given by \(w_1' x_1 + w_2' x_2 + 1 = 0\). Note that because of the constant 1, for any arbitrary data, there will be a difference in the decision boundary of the bias-less and biased perceptron, thus leading to the same \(f\) not being learned.
+\end{flushleft}
+
 \section*{Question 5}
 The function in consideration is \(f(\mathbf{x}) = \displaystyle \log\left(\sum_{i=1}^{n} e^{x_i}\right)\)
 \subsection*{Part a}
@@ -51,4 +58,51 @@ If \(f : \mathbb{R} \to \mathbb{R}\), \(g : \mathbb{R}^{n} \to \mathbb{R}\) and 
 \nabla h(\mathbf{x}) = \nabla (f \circ g)(\mathbf{x}) = \frac{d(f \circ g)}{dg(\mathbf{x})} \nabla g(\mathbf{x})
 \end{equation}
 \end{flushleft}
+
+\section*{Question 6}
+\begin{flushleft}
+Consider a univariate regression task with a mean-squared loss function for the neural network. Mathematically, this can be formulated as:
+\begin{equation}
+\displaystyle \text{Loss}(\mathcal{D} = ((X_1, y_1), (X_2, y_2), \ldots, (X_m, y_m)) = \frac{1}{m}\sum_{i=1}^{m} (y_{i} - WX_{i})^{2}
+\end{equation}
+Here \(W\) is the product of all the weights in the neural network as \(W = W_{H}W_{H-1}\ldots W_{1}\).
+
+We seek to minimize this loss function by using gradient descent over all the parameters of the network. This can be written as follows:
+\begin{equation}
+\label{gd}
+W^{*}_{H}, W^{*}_{H-1}, \ldots W^{*}_{1} = \argmin_{W_{H}, W_{H-1}, \ldots, W_{1}} \frac{1}{m}\sum_{i=1}^{m} (y_{i} - WX_{i})^{2}
+\end{equation}
+
+Now, for the same univariate regression problem, assume that the differences between \(y_{i} - WX_{i} = \epsilon_{i}\) be modelled as \textit{i.i.d.} zero-mean Gaussian random variable \(\mathcal{N}(0, \sigma^{2})\). The likelihood of the function given the \(\epsilon\)'s can be given by:
+\begin{equation}
+\displaystyle L = \prod_{i=1}^{m} \frac{1}{\sqrt{2\pi} \sigma} e^{-\left(\frac{\epsilon_{i}^{2}}{2\sigma^{2}}\right)}
+\end{equation}
+
+Now, the same likelihood computed for a given \(W\) is:
+\begin{equation}
+\displaystyle L(y | X, W) = \prod_{i=1}^{m} \frac{1}{\sqrt{2\pi} \sigma} e^{-\left(\frac{(y_{i} - WX_{i})^2}{2\sigma^{2}}\right)}
+\end{equation}
+
+We would like to find the best set of parameters \(W_{H}, W_{H-1}, \ldots, W_{1}\), to maximize this likehilood (or the log-likelihood)
+\begin{multline}
+\label{mle}
+\displaystyle W^{*}_{H}, W^{*}_{H-1}, \ldots W^{*}_{1} = \argmax_{W_{H}, W_{H-1}, \ldots, W_{1}} \log L(y | X, W) = \\
+\argmax_{W_{H}, W_{H-1}, \ldots, W_{1}} -\sum_{i=1}^{m} \log(\sqrt{2\pi}\sigma) - \frac{1}{2\sigma^{2}} \sum_{i=1}^{m} (y_{i} - WX_{i})^2 = \argmin_{W_{H}, W_{H-1}, \ldots, W_{1}} \sum_{i=1}^{m} (y_{i} - WX_{i})^2
+\end{multline}
+
+Note that the equations \ref{gd} and \ref{mle} produce the same solutions, since the functions are the same (except for the scaling in \ref{gd} due to the mean). Hence the equivalence between backpropagation (or gradient descent) and maximum likelihood estimation has been shown when:
+\begin{itemize}
+\item The deviation between the predictions and targets are \textit{i.i.d.} zero-centered Gaussian random variables
+\item The (mean-)squared loss function is taken into account.
+\end{itemize}
+\end{flushleft}
+
+\section*{Question 8}
+All these times include time taken for type-setting as well.
+\begin{itemize}
+\item Time spent on question 1: 5 minutes
+\item Time spent on question 4: 20 minutes
+\item Time spent on question 5: 15 minutes
+\item Time spent on question 6: 10 minutes
+\end{itemize}
 \end{document}
