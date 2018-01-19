@@ -5,6 +5,7 @@
 \usepackage{hyperref}
 \newcommand{\argmin}{\mathop{\mathrm{argmin}}}
 \newcommand{\argmax}{\mathop{\mathrm{argmax}}}
+\newcommand{\dO}{\partial}
 
 \title{Solutions to the Assignment - 0 : CS5480 - \\
 Deep Learning}
@@ -30,6 +31,44 @@ Now the expected payout from the die roll can be given by \(\mathbb{E}[f(X)]\). 
 The expected payout to a visitor is \(\boxed{\text{Rs.} -\frac{-25}{6}}\), which is a loss. Hence, this might not be a good plan, and the organizers will not make money (in expectation).
 \end{flushleft}
 
+\section*{Question 2}
+\begin{flushleft}
+We know that \(f = \langle W^{3}, h^{2} \rangle = \displaystyle \sum_{k=1}^{2} W^{3}_{k}h^{2}_{k}\).
+More information:
+\begin{itemize}
+\item \(\displaystyle h^{2}_{k} = \sigma\left(\sum_{j=1}^{2} W^{2}_{j, k} h^{1}_{j}\right) \)
+\item \(\displaystyle h^{1}_{j} = \sigma\left(\sum_{i=1}^{2} W^{1}_{i, j} x_{i}\right) \)
+\end{itemize}
+Now using chain rule:
+\begin{gather}
+\label{eq1}
+\displaystyle \frac{\dO f}{\dO W^{1}_{i, j}} = \sum_{k=1}^{2}W^{3}_{k}\frac{\dO h^{2}_{k}}{\dO W^{1}_{i, j}} \\
+\label{eq2}
+\displaystyle \frac{\dO h^{2}_{k}}{\dO W^{1}_{i, j}} = \sigma'\left(\sum_{j=1}^{2} W^{2}_{j,k}h^{1}_{j}\right) \times \left(\sum_{j=1}^{2}W^{2}_{j,k}\frac{\dO h^{1}_{j}}{\dO W^{1}_{i, j}}\right) \\
+\label{eq3}
+\displaystyle \frac{\dO h^{1}_{j}}{\dO W^{1}_{i, j}} = \sigma'\left(\sum_{i=1}^{2} W^{1}_{i,j}x_{i}\right) \times \left(\sum_{i=1}^{2}x_{i}\right)
+\end{gather}
+
+Assembling the above equations \ref{eq1}, \ref{eq2} and \ref{eq3}, we get:
+\begin{equation}
+\displaystyle \frac{\dO f}{\dO W^{1}_{i,j}} = \sum_{k=1}^{2}W^{3}_{k}\left(\sigma'\left(\sum_{j=1}^{2} W^{2}_{j,k}h^{1}_{j}\right) \times \left(\sum_{j=1}^{2}W^{2}_{j, k} \left(\sigma'\left(\sum_{i=1}^{2} W^{1}_{i,j}x_{i}\right) \times \left(\sum_{i=1}^{2}x_{i}\right)\right) \right) \right)
+\end{equation}
+
+If \(\sigma(.)\) is the sigmoid activation:
+\begin{equation}
+\displaystyle \frac{\dO f}{\dO W^{1}_{i, j}} = \sum_{k=1}^{2}W^{3}_{k} \left(h^{2}_{k} (1 - h^{2}_{k}) \times \left(\sum_{j=1}^{2} W^{2}_{j,k} \left(h^{1}_{j} (1 - h^{1}_{j}) \times \sum_{i=1}^{2} x_{i}\right) \right)\right)
+\end{equation}
+\end{flushleft}
+
+\section*{Question 3}
+\begin{flushleft}
+Note that since we have to compute all pairs of \((i, j)\), this will be an outer product.
+\begin{equation}
+\Delta^{(2)} := \Delta^{(2)} = \delta^{(3)} a^{(2)^{T}}
+\end{equation}
+where \(\delta^{(3)} = \nabla_{W^{3}} f\) and \(a^{(2)}\) is the raw output from the first layer (without activations).
+\end{flushleft}
+
 \section*{Question 4}
 \begin{flushleft}
 The first perceptron (bias-less) would learn a function \(f\) by learning the parameters \(w_1, w_2\) to produce a classifier whose boundary is \(w_1 x_1 + w_2 x_2 = 0\). Now, if there was a fixed bias \(( = 1)\), then the resulting classifier with a decision boundary given by \(w_1' x_1 + w_2' x_2 + 1 = 0\). Note that because of the constant 1, for any arbitrary data, there will be a difference in the decision boundary of the bias-less and biased perceptron, thus leading to the same \(f\) not being learned.
@@ -40,14 +79,14 @@ The function in consideration is \(f(\mathbf{x}) = \displaystyle \log\left(\sum_
 \subsection*{Part a}
 \begin{flushleft}
 \begin{equation}
-\frac{\partial f}{\partial x_{i}} = \frac{e^{x_i}}{\displaystyle \sum_{i=1}^{n} e^{x_i}} \quad \forall i \in 1, \ldots, n
+\frac{\dO f}{\dO x_{i}} = \frac{e^{x_i}}{\displaystyle \sum_{i=1}^{n} e^{x_i}} \quad \forall i \in 1, \ldots, n
 \end{equation}
 \end{flushleft}
 
 \subsection*{Part b}
 \begin{flushleft}
 \begin{equation}
-\nabla f(\mathbf{x}) = \langle \ldots, \frac{\partial f}{\partial x_{i}}, \ldots\rangle = \left(\frac{1}{\displaystyle \sum_{i=1}^{n} e^{x_i}}\right) \langle e^{x_1}, e^{x_2}, \ldots, e^{x_n}\rangle
+\nabla f(\mathbf{x}) = \langle \ldots, \frac{\dO f}{\dO x_{i}}, \ldots\rangle = \left(\frac{1}{\displaystyle \sum_{i=1}^{n} e^{x_i}}\right) \langle e^{x_1}, e^{x_2}, \ldots, e^{x_n}\rangle
 \end{equation}
 \end{flushleft}
 
@@ -101,6 +140,8 @@ Note that the equations \ref{gd} and \ref{mle} produce the same solutions, since
 All these times include time taken for type-setting as well.
 \begin{itemize}
 \item Time spent on question 1: 5 minutes
+\item Time spent on question 2: 20 minutes
+\item Time spent on question 3: 10 minutes
 \item Time spent on question 4: 20 minutes
 \item Time spent on question 5: 15 minutes
 \item Time spent on question 6: 10 minutes
