@@ -36,27 +36,27 @@ The expected payout to a visitor is \(\boxed{\text{Rs.} -\frac{-25}{6}}\), which
 We know that \(f = \langle W^{3}, h^{2} \rangle = \displaystyle \sum_{k=1}^{2} W^{3}_{k}h^{2}_{k}\).
 More information:
 \begin{itemize}
-\item \(\displaystyle h^{2}_{k} = \sigma\left(\sum_{j=1}^{2} W^{2}_{j, k} h^{1}_{j}\right) \)
-\item \(\displaystyle h^{1}_{j} = \sigma\left(\sum_{i=1}^{2} W^{1}_{i, j} x_{i}\right) \)
+\item \(\displaystyle h^{2}_{k} = \sigma\left(\sum_{j=1}^{2} W^{2}_{g, k} h^{1}_{g}\right) \)
+\item \(\displaystyle h^{1}_{g} = \sigma\left(\sum_{l=1}^{2} W^{1}_{l, g} x_{l}\right) \)
 \end{itemize}
 Now using chain rule:
 \begin{gather}
 \label{eq1}
 \displaystyle \frac{\dO f}{\dO W^{1}_{i, j}} = \sum_{k=1}^{2}W^{3}_{k}\frac{\dO h^{2}_{k}}{\dO W^{1}_{i, j}} \\
 \label{eq2}
-\displaystyle \frac{\dO h^{2}_{k}}{\dO W^{1}_{i, j}} = \sigma'\left(\sum_{j=1}^{2} W^{2}_{j,k}h^{1}_{j}\right) \times \left(\sum_{j=1}^{2}W^{2}_{j,k}\frac{\dO h^{1}_{j}}{\dO W^{1}_{i, j}}\right) \\
+\displaystyle \frac{\dO h^{2}_{k}}{\dO W^{1}_{i, j}} = \sigma'\left(\sum_{g=1}^{2} W^{2}_{g,k}h^{1}_{g}\right) \times \left(\frac{\dO h^{1}_{j}}{\dO W^{1}_{i, j}}\right) \\
 \label{eq3}
-\displaystyle \frac{\dO h^{1}_{j}}{\dO W^{1}_{i, j}} = \sigma'\left(\sum_{i=1}^{2} W^{1}_{i,j}x_{i}\right) \times \left(\sum_{i=1}^{2}x_{i}\right)
+\displaystyle \frac{\dO h^{1}_{j}}{\dO W^{1}_{i, j}} = \sigma'\left(\sum_{l=1}^{2} W^{1}_{l,g}x_{l}\right) \times x_{i}
 \end{gather}
 
 Assembling the above equations \ref{eq1}, \ref{eq2} and \ref{eq3}, we get:
 \begin{equation}
-\displaystyle \frac{\dO f}{\dO W^{1}_{i,j}} = \sum_{k=1}^{2}W^{3}_{k}\left(\sigma'\left(\sum_{j=1}^{2} W^{2}_{j,k}h^{1}_{j}\right) \times \left(\sum_{j=1}^{2}W^{2}_{j, k} \left(\sigma'\left(\sum_{i=1}^{2} W^{1}_{i,j}x_{i}\right) \times \left(\sum_{i=1}^{2}x_{i}\right)\right) \right) \right)
+\displaystyle \frac{\dO f}{\dO W^{1}_{i,j}} = \sum_{k=1}^{2}W^{3}_{k}\left(\sigma'\left(\sum_{g=1}^{2} W^{2}_{g,k}h^{1}_{g}\right) \times \left(W^{2}_{j, k} \left(\sigma'\left(\sum_{l=1}^{2} W^{1}_{l,j}x_{l}\right) \times x_{i}\right) \right) \right)
 \end{equation}
 
 If \(\sigma(.)\) is the sigmoid activation:
 \begin{equation}
-\displaystyle \frac{\dO f}{\dO W^{1}_{i, j}} = \sum_{k=1}^{2}W^{3}_{k} \left(h^{2}_{k} (1 - h^{2}_{k}) \times \left(\sum_{j=1}^{2} W^{2}_{j,k} \left(h^{1}_{j} (1 - h^{1}_{j}) \times \sum_{i=1}^{2} x_{i}\right) \right)\right)
+\displaystyle \frac{\dO f}{\dO W^{1}_{i, j}} = \sum_{k=1}^{2}W^{3}_{k} \left(h^{2}_{k} (1 - h^{2}_{k}) \times \left(W^{2}_{j,k} \left(h^{1}_{j} (1 - h^{1}_{j}) \times x_{i}\right) \right)\right)
 \end{equation}
 \end{flushleft}
 
@@ -64,7 +64,7 @@ If \(\sigma(.)\) is the sigmoid activation:
 \begin{flushleft}
 Note that since we have to compute all pairs of \((i, j)\), this will be an outer product.
 \begin{equation}
-\Delta^{(2)} := \Delta^{(2)} = \delta^{(3)} a^{(2)^{T}}
+\Delta^{(2)} := \Delta^{(2)} + \delta^{(3)} a^{(2)^{T}}
 \end{equation}
 where \(\delta^{(3)} = \nabla_{W^{3}} f\) and \(a^{(2)}\) is the raw output from the first layer (without activations).
 \end{flushleft}
@@ -135,6 +135,13 @@ Note that the equations \ref{gd} and \ref{mle} produce the same solutions, since
 \item The (mean-)squared loss function is taken into account.
 \end{itemize}
 \end{flushleft}
+
+\section*{Question 7}
+A perceptron is a harder version of a logistic regression classifier, not permitting any slack. Both these classifiers learn a standard linear boundary separating (not in all cases) two classes of points. However:
+\begin{itemize}
+\item The perceptron has a more basic structure of learning based on Widrow-Hoff's learning rule, wherein the weights are altered by the amount of "misclassification" (which is hard here (0-1 loss) based). On the other hand, the logistic regression classifier allows for "softer" training, by penalizing the probabilities of classifying a wrong class based on a different loss function (binary cross entropy).
+\item I feel that the inference of both these classifiers would be very similar despite the solutions not being so, because for a perceptron if \(w^{T} x > 0\), then \(\alpha w^{T} x > 0, \forall \alpha \in \mathbb{R}^{++}\).
+\end{itemize}
 
 \section*{Question 8}
 All these times include time taken for type-setting as well.
