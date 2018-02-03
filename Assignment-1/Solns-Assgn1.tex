@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage[utf8]{inputenc}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -115,4 +116,42 @@ LSR (with bias) & 40.3205 (40) & 44.0305 (44) & 49.9604 (50) \\
 \hline
 \end{tabular}
 \end{center}
+
+\section*{Question 3}
+\subsection*{Part a}
+\begin{flushleft}
+The code snippet being referred to here are lines 105-140 (inclusive) and lines 159-EOF in the \texttt{mnist.py} file. The code does the following:
+\begin{itemize}
+\item Between lines 105-140, every time \texttt{test()} is called, the training accuracy and training loss over the entire dataset is computed. After this, these values are stored in variables \texttt{train\_loss} and \texttt{train\_accu}.
+\item After the above step, the testing accuracy and testing loss over the entire dataset is computed. These values are stored in variables \texttt{test\_loss} and \texttt{test\_accu}, and returned collectively with the values from the training set.
+\item From line 159 onwards, the losses are concatenated from each call to the \texttt{test()} function and then plotted using \texttt{matplotlib.pyplot}. Training and testing Losses are plotted on the left hand side of the graph and training and testing accuracies are plotted on the right hand side of the graph.
+\end{itemize}
+\end{flushleft}
+
+\subsection*{Part b}
+\begin{flushleft}
+The best SGD criterion is:
+\begin{itemize}
+\item Batch Size (chosen from 48, 64, 92, 128, 144, 160): 64
+\item Learning Rate (taken from the set \texttt{\{1e-04, 2e-04, 5e-04, 1e-03, 2e-03, 5e-03, 1e-02, 2e-02, 5e-02, 1e-01\}}): \texttt{0.001}
+\item Momentum Parameter (taken from the set \texttt{\{0.0, 0.9, 0.95, 0.975, 0.99\}}): \texttt{0.975}
+\item Weight Decay (taken from the set \texttt{\{0.0, 1e-04, 5e-04, 1e-03, 5e-03\}}): \texttt{1e-04}
+\item Nesterov criterion: \texttt{False}
+\end{itemize}
+
+These values were chosen on the basis of both the rate of decrease of training loss and rate of increase of test classification error, while checking for generalizability. The code snippet for the classification error is as follows:
+\begin{lstlisting}[language=Python]
+output = model(input)
+pred_classes = output.max(1)[1]
+# below line computes absolute classification error
+error = len(output) - torch.eq(pred_classes, target).sum()
+\end{lstlisting}
+\end{flushleft}
+
+\subsection*{Part c}
+\begin{flushleft}
+The two other optimizers that I took were Adam and Adagrad. Adagrad has fewer parameters to perform a search over, effectively ``reducing'' the search space. On the other hand, Adam has a few more hyperparameters that can be configured, which would effectively take a lot of time. Adam has a few default values, but there are certain applications such as GANs where these default values don't give as good results. Hence, with the benefit of doubt, one can configure more parameters, which is unfortunately highly tedious.
+
+Incorporating these for testing was done in the enclosed \texttt{mnist.py} file as well.
+\end{flushleft}
 \end{document}

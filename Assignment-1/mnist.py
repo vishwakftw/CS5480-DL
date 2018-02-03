@@ -2,17 +2,34 @@ from __future__ import print_function
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-from torchvision import datasets, transforms
+import torch.nn.functional as F
 from torch.autograd import Variable
+from torchvision import datasets, transforms
+
 from matplotlib import pyplot as plt
+from argparse import ArgumentParser as AP
+
+p = AP()
+p.add_argument('--opt_name', type=str, required=True, help='name of the optimizer')
+p.add_argument('--lr', type=float, required=True, help='learning rate')
+p.add_argument('--momentum', type=float, default=0.0, help='momentum parameter')
+p.add_argument('--l2', type=float, default=0.0, help='weight decay / L2 regularization')
+p.add_argument('--nesterov', type=bool, default=False, help='nesterov momentum or not')
+p.add_argument('--batchsize', type=int, required=True, help='mini-batch size')
+p.add_argument('--beta1', type=float, default=0.9, help='beta 1 for ADAM')
+p.add_argument('--beta2', type=float, default=0.99, help='beta 2 for ADAM')
+p = p.parse_args()
 
 # Training settings
-batch_size = 64
 test_batch_size = 1000
 epochs = 10
-lr = 0.001
+lr = p.lr
+momentum = p.momentum
+weight_decay = p.l2
+nesterov = p.nesterov
+batch_size = p.batchsize
+betas = (p.beta1, p.beta2)
 
 seed = 1
 log_interval = 10
@@ -59,7 +76,12 @@ model = Net()
 if CUDA_CHECK:
     model = model.cuda()
 
-optimizer = optim.SGD(model.parameters(), lr=lr)
+if p.opt_name == 'sgd':
+    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay, nesterov=nesterov)
+elif p.opt_name == 'adam':
+    optimizer = optim.Adam(model.parameters(), lr=lr, betas=betas, weight_decay=weight_decay)
+elif p.opt_name == 'adagrad':
+    optimizer = optim.Adagrad(model.parameters(), lr=lr, weight_decay=weight_decay)
 
 
 def train(epoch):
@@ -132,18 +154,20 @@ for epoch in range(1, epochs + 1):
     test_losses.append(te_ls)
     test_accs.append(te_ac)
 
+fig = plt.figure(figsize=(12, 10))
+
 # One subplot for losses
 plt.subplot(121)
-plt.plot(range(1, epochs + 1), training_losses, 'r-', label='Training Losses')
-plt.plot(range(1, epochs + 1), test_losses, 'b-', label='Testing Losses')
+plt.plot(range(1, epochs + 1), training_losses, color='red', ls='-', marker='.', ms=12.5, label='Training Losses')
+plt.plot(range(1, epochs + 1), test_losses,  color='blue', ls='-', marker='.', ms=12.5, label='Testing Losses')
 plt.title('Loss variation with Epochs')
 plt.legend(loc='upper right')
 
 # One subplot for accuracies
 plt.subplot(122)
-plt.plot(range(1, epochs + 1), training_accs, 'r-', label='Training Accuracy')
-plt.plot(range(1, epochs + 1), test_accs, 'b-', label='Testing Accuracy')
+plt.plot(range(1, epochs + 1), training_accs,  color='red', ls='-', marker='.', ms=12.5, label='Training Accuracy')
+plt.plot(range(1, epochs + 1), test_accs,  color='blue', ls='-', marker='.', ms=12.5, label='Testing Accuracy')
 plt.title('Accuracy variation with Epochs')
 plt.legend(loc='lower right')
 
-plt.show()
+plt.savefig('{0}-{1}-{2}-{3}-{4}.png'.format(lr, momentum, weight_decay, nesterov, batch_size), dpi=100)
