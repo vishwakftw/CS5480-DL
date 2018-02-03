@@ -3,3 +3,7 @@
 *.aux
 *.log
 *.out
+
+# Dataset files
+*.pt
+*byte
