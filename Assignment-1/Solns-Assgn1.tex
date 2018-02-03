@@ -48,4 +48,71 @@ print(col)  # Will print a torch.Tensor of size 3
 \end{itemize}
 \end{flushleft}
 
+\section*{Question 2}
+\subsection*{Part a}
+\begin{enumerate}
+\item Modifying the learning rate produced different results.
+\item When the learning rate was too high e.g., \texttt{lr=1e-02}, the losses diverged and quickly became \texttt{nan}.
+\item When the learning rate was too low e.g., \texttt{lr=1e-04}, the loss converged slowly, which affected the quality of predictions.
+\end{enumerate}
+
+\subsection*{Part b}
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Parameter} & \textbf{Value} \\
+\hline
+Weight 1 & 0.4175 \\
+\hline
+Weight 2 & 0.9582 \\
+\hline
+Bias & 35.3950 \\
+\hline
+\end{tabular}
+
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Test datapoint} & \textbf{Predicted value (Rounded off in brackets)}\\
+\hline
+\texttt{[6, 4]} & 41.7330 (42) \\
+\hline
+\texttt{[10, 5]} & 44.3613 (44) \\
+\hline
+\texttt{[14, 8]} & 48.9061 (49) \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection*{Part c}
+\begin{itemize}
+\item There were two versions implemented, least squares regression without bias and with bias (by appending 1 in the input data).
+\item Predictions and weights of least squares regression without bias seemed to quite different from those obtained using SGD / least squares regression with bias.
+\item The values are affected by the lack of the bias. The predictions and weights are displayed below.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Parameter Values} & \textbf{Weight 1} & \textbf{Weight 2} & \textbf{Bias} \\
+\hline
+SGD & 0.4175 & 0.9582 & 35.3950 \\
+\hline
+LSR (without bias) & 4.8018 & -2.6482 & N/A \\
+\hline
+LSR (with bias) & 0.6501 & 1.1099 & 31.9806 \\
+\hline
+\end{tabular}
+
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Predictions (rounded off in brackets)} & \texttt{[6, 4]} & \texttt{[10, 5]} & \texttt{[14, 8]} \\
+\hline
+SGD & 41.7330 (42) & 44.3613 (44) & 48.9061 (49) \\
+\hline
+LSR (without bias) & 18.2181 (18) & 34.7772 (35) & 46.0399 (46) \\
+\hline
+LSR (with bias) & 40.3205 (40) & 44.0305 (44) & 49.9604 (50) \\
+\hline
+\end{tabular}
+\end{center}
 \end{document}
