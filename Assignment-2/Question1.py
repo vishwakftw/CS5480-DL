@@ -2,13 +2,14 @@ import yaml
 import torch as t
 import pandas as pd
 import torch.nn as nn
-from argparse import ArgumentParser as AP
-from torch.utils.data import TensorDataset, DataLoader
+from argparse import ArgumentParser
 from matplotlib import pyplot as plt
+from torch.autograd import Variable as V
+from torch.utils.data import TensorDataset, DataLoader
 
 CUDA_CHECK = t.cuda.is_available()
 
-p = AP()
+p = ArgumentParser()
 p.add_argument('--train_data_loc', type=str, required=True, help='Root location for the training data')
 p.add_argument('--test_data_loc', type=str, required=True, help='Root location for the testing data')
 p.add_argument('--batch_size', type=int, default=100, help='Batch size for the training')
@@ -17,6 +18,7 @@ p.add_argument('--layer_info', type=str, required=True, help='Root location for 
 p.add_argument('--activation', type=str, default='relu', help='Activation for hidden layers')
 p.add_argument('--loss', type=str, default='bce', help='Loss function')
 p.add_argument('--epochs', type=int, default=5, help='Number of epochs to train for')
+p.add_argument('--baseline', action='store_true', help='Get a weighted baseline')
 p = p.parse_args()
 
 # Read the dataset from the file
@@ -71,7 +73,7 @@ if CUDA_CHECK:
     loss = loss.cuda()
 
 optim_yaml = yaml.load(open(p.opt_det, 'r'))
-if optim_yaml['name'] == 'sgd':    
+if optim_yaml['name'] == 'sgd':
     optimizer = t.optim.SGD(main_network.parameters(), lr=optim_yaml['params']['lr'])
 elif optim_yaml['name'] == 'adam':
     optimizer = t.optim.Adam(main_network.parameters(), lr=optim_yaml['params']['lr'])
@@ -86,9 +88,9 @@ for k in optim_yaml['params'].keys():
 # Build the training loop
 n_iters = 0
 train_losses = []
-train_accus = []
+train_errors = []
 test_losses = []
-test_accus = []
+test_errors = []
 for e in range(0, p.epochs):
 
     # Training phase
@@ -99,9 +101,11 @@ for e in range(0, p.epochs):
         if CUDA_CHECK:
             x = x.cuda()
             y = y.cuda()
+        x = V(x)
+        y = V(y)
         outputs = main_network(x)
         cur_loss = loss(outputs, y)
-        if n_iters % 100 == 0:
+        if n_iters % 500 == 0:
             print(round(cur_loss.data[0], 5))
         cur_loss.backward()
         optimizer.step()
@@ -110,51 +114,91 @@ for e in range(0, p.epochs):
     # Evaluation phase
     main_network.eval()
     train_loss = 0.0
-    train_accu = 0.0
+    train_error = 0.0
     for i, itr in enumerate(tr_loader):
         x, y = itr
         if CUDA_CHECK:
             x = x.cuda()
             y = y.cuda()
+        x = V(x)
+        y = V(y)
         outputs = main_network(x)
         cur_loss = loss(outputs, y)
-        outputs[outputs > 0.5] = 1
-        outputs[outputs <= 0.5] = 0
+        outputs[outputs.data > 0.5] = 1
+        outputs[outputs.data <= 0.5] = 0
         train_loss += cur_loss.data[0] * len(y)
-        train_accu += (len(y) - (outputs - y).abs().sum().data[0])
+        train_error += (outputs - y).abs().sum().data[0]
 
     train_loss /= len(tr_dataset)
-    train_accu /= len(tr_dataset)
+    train_error /= len(tr_dataset)
     train_losses.append(train_loss)
-    train_accus.append(train_accu)
+    train_errors.append(train_error)
 
     test_loss = 0.0
-    test_accu = 0.0
+    test_error = 0.0
     for i, itr in enumerate(te_loader):
         x, y = itr
         if CUDA_CHECK:
             x = x.cuda()
             y = y.cuda()
+        x = V(x)
+        y = V(y)
         outputs = main_network(x)
         cur_loss = loss(outputs, y)
-        outputs[outputs > 0.5] = 1
-        outputs[outputs <= 0.5] = 0
+        outputs[outputs.data > 0.5] = 1
+        outputs[outputs.data <= 0.5] = 0
         test_loss += cur_loss.data[0] * len(y)
-        test_accu += (len(y) - (outputs - y).abs().sum().data[0])
+        test_error += (outputs - y).abs().sum().data[0]
 
     test_loss /= len(te_dataset)
-    test_accu /= len(te_dataset)
+    test_error /= len(te_dataset)
     test_losses.append(test_loss)
-    test_accus.append(test_accu)
+    test_errors.append(test_error)
 
+plt.clf()
+plt.figure(figsize=(12, 10))
 plt.subplot(121)
 plt.plot(list(range(1, p.epochs + 1)), train_losses, label='Train Loss')
-plt.subplot(122)
-plt.plot(list(range(1, p.epochs + 1)), train_accus, label='Train Accuracy')
-plt.show()
+plt.legend(loc='upper right')
 
+plt.subplot(122)
+plt.plot(list(range(1, p.epochs + 1)), train_errors, label='Train Accuracy')
+
+# Perform random guessing based on existing class counts
+if p.baseline:
+    ratio = tr_dataset.target_tensor.sum() / len(tr_dataset)
+    random_predictions = t.bernoulli(t.Tensor([ratio]).expand(len(tr_dataset)))
+    for i in range(0, 4):
+        random_predictions += t.bernoulli(t.Tensor([ratio]).expand(len(tr_dataset)))
+    random_predictions /= 5
+    random_predictions[random_predictions > ratio] = 1
+    random_predictions[random_predictions <= ratio] = 0
+    baseline_error = (random_predictions - tr_dataset.target_tensor).abs().mean()
+    plt.plot(list(range(1, p.epochs + 1)), [baseline_error] * p.epochs, 'r--', label='Baseline')
+plt.legend(loc='upper right')
+plt.savefig('Train-Statistics-SGD-batchsize={}.png'.format(p.batch_size), dpi=100)
+
+plt.clf()
+plt.figure(figsize=(12, 10))
 plt.subplot(121)
 plt.plot(list(range(1, p.epochs + 1)), test_losses, label='Test Loss')
+plt.legend(loc='upper right')
+
 plt.subplot(122)
-plt.plot(list(range(1, p.epochs + 1)), test_accus, label='Test Accuracy')
-plt.show()
+plt.plot(list(range(1, p.epochs + 1)), test_errors, label='Test Accuracy')
+
+# Perform random guessing based on existing class counts
+if p.baseline:
+    ratio = te_dataset.target_tensor.sum() / len(te_dataset)
+    random_predictions = t.bernoulli(t.Tensor([ratio]).expand(len(te_dataset)))
+    for i in range(0, 4):
+        random_predictions += t.bernoulli(t.Tensor([ratio]).expand(len(te_dataset)))
+    random_predictions /= 5
+    random_predictions[random_predictions > ratio] = 1
+    random_predictions[random_predictions <= ratio] = 0
+    baseline_error = (random_predictions - te_dataset.target_tensor).abs().mean()
+    plt.plot(list(range(1, p.epochs + 1)), [baseline_error] * p.epochs, 'r--', label='Baseline')
+plt.legend(loc='upper right')
+plt.savefig('Test-Statistics-SGD-batchsize={}.png'.format(p.batch_size), dpi=100)
+
+print("Final Results:\nTraining Accuracy: {}\nTesting Accuracy: {}".format(1 - train_errors[-1], 1 - test_errors[-1]))
