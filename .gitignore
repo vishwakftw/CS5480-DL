@@ -7,3 +7,5 @@
 # Dataset files
 *.pt
 *byte
+*.txt
+*.csv
