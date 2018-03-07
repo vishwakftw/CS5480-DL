@@ -162,7 +162,7 @@ plt.plot(list(range(1, p.epochs + 1)), train_losses, label='Train Loss')
 plt.legend(loc='upper right')
 
 plt.subplot(122)
-plt.plot(list(range(1, p.epochs + 1)), train_errors, label='Train Accuracy')
+plt.plot(list(range(1, p.epochs + 1)), train_errors, label='Train Error')
 
 # Perform random guessing based on existing class counts
 if p.baseline:
@@ -185,7 +185,7 @@ plt.plot(list(range(1, p.epochs + 1)), test_losses, label='Test Loss')
 plt.legend(loc='upper right')
 
 plt.subplot(122)
-plt.plot(list(range(1, p.epochs + 1)), test_errors, label='Test Accuracy')
+plt.plot(list(range(1, p.epochs + 1)), test_errors, label='Test Error')
 
 # Perform random guessing based on existing class counts
 if p.baseline:
