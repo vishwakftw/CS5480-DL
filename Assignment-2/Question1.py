@@ -42,14 +42,11 @@ te_loader = DataLoader(te_dataset, batch_size=1000, shuffle=True)
 
 # Build your network
 main_network = nn.Sequential()
-layer_list = []
-with open(p.layer_info, 'r') as f:
-    for line in f:
-        layer_list = line.split(',')
+layer_list = np.genfromtxt(p.layer_info, delimiter=',', dtype=int)
 
 for i in range(0, len(layer_list) - 1):
     main_network.add_module('Linear-{0}-{1}-{2}'.format(i, layer_list[i], layer_list[i + 1]),
-                            nn.Linear(int(layer_list[i]), int(layer_list[i + 1])))
+                            nn.Linear(layer_list[i], layer_list[i + 1]))
 
     if i != len(layer_list) - 2:
         if p.activation == 'relu':
@@ -158,11 +155,11 @@ for e in range(0, p.epochs):
 plt.clf()
 plt.figure(figsize=(12, 10))
 plt.subplot(121)
-plt.plot(list(range(1, p.epochs + 1)), train_losses, label='Train Loss')
+plt.plot(list(range(1, p.epochs + 1)), train_losses, linewidth=2.0, markersize=5.0, marker='o', label='Train Loss')
 plt.legend(loc='upper right')
 
 plt.subplot(122)
-plt.plot(list(range(1, p.epochs + 1)), train_errors, label='Train Error')
+plt.plot(list(range(1, p.epochs + 1)), train_errors, linewidth=2.0, markersize=5.0, marker='o', label='Train Error')
 
 # Perform random guessing based on existing class counts
 if p.baseline:
@@ -174,18 +171,18 @@ if p.baseline:
     random_predictions[random_predictions > ratio] = 1
     random_predictions[random_predictions <= ratio] = 0
     baseline_error = (random_predictions - tr_dataset.target_tensor).abs().mean()
-    plt.plot(list(range(1, p.epochs + 1)), [baseline_error] * p.epochs, 'r--', label='Baseline')
+    plt.plot(list(range(1, p.epochs + 1)), [baseline_error] * p.epochs, 'r--', linewidth=2.0, label='Baseline')
 plt.legend(loc='upper right')
 plt.savefig('Train-Statistics-SGD-batchsize={}.png'.format(p.batch_size), dpi=100)
 
 plt.clf()
 plt.figure(figsize=(12, 10))
 plt.subplot(121)
-plt.plot(list(range(1, p.epochs + 1)), test_losses, label='Test Loss')
+plt.plot(list(range(1, p.epochs + 1)), test_losses, linewidth=2.0, markersize=5.0, marker='o', label='Test Loss')
 plt.legend(loc='upper right')
 
 plt.subplot(122)
-plt.plot(list(range(1, p.epochs + 1)), test_errors, label='Test Error')
+plt.plot(list(range(1, p.epochs + 1)), test_errors, linewidth=2.0, markersize=5.0, marker='o', label='Test Error')
 
 # Perform random guessing based on existing class counts
 if p.baseline:
@@ -197,7 +194,7 @@ if p.baseline:
     random_predictions[random_predictions > ratio] = 1
     random_predictions[random_predictions <= ratio] = 0
     baseline_error = (random_predictions - te_dataset.target_tensor).abs().mean()
-    plt.plot(list(range(1, p.epochs + 1)), [baseline_error] * p.epochs, 'r--', label='Baseline')
+    plt.plot(list(range(1, p.epochs + 1)), [baseline_error] * p.epochs, 'r--', linewidth=2.0, label='Baseline')
 plt.legend(loc='upper right')
 plt.savefig('Test-Statistics-SGD-batchsize={}.png'.format(p.batch_size), dpi=100)
 

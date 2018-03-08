@@ -161,31 +161,28 @@ for e in range(0, p.epochs):
 
 plt.clf()
 plt.figure(figsize=(12, 10))
-plt.subplot(121)
-plt.plot(list(range(1, p.epochs + 1)), train_losses, label='Train Loss')
+plt.subplot(221)
+plt.plot(list(range(1, p.epochs + 1)), train_losses, linewidth=2.0, markersize=5.0, marker='o', label='Train Loss')
 plt.legend(loc='upper right')
 
-plt.subplot(122)
-plt.plot(list(range(1, p.epochs + 1)), train_accus, label='Train Accuracy')
+plt.subplot(222)
+plt.plot(list(range(1, p.epochs + 1)), train_accus, linewidth=2.0, markersize=5.0, marker='o', label='Train Accuracy')
 plt.legend(loc='lower right')
+
+plt.subplot(212)
+plt.plot(list(range(n_iters)), train_loss_log, 'r-', linewidth=2.0, label='Training loss variation')
+plt.legend(loc='upper right')
 plt.savefig('Train-Statistics-MNIST-dropout-{}-batchnorm-{}-activation-{}-init-{}.png'.format(
             p.dropout_prob, p.batch_norm, p.activation, p.init_scheme), dpi=100)
 
 plt.clf()
 plt.figure(figsize=(12, 10))
 plt.subplot(121)
-plt.plot(list(range(1, p.epochs + 1)), test_losses, label='Test Loss')
+plt.plot(list(range(1, p.epochs + 1)), test_losses, 'g-', linewidth=2.0, markersize=5.0, marker='o', label='Test Loss')
 plt.legend(loc='upper right')
 
 plt.subplot(122)
-plt.plot(list(range(1, p.epochs + 1)), test_accus, label='Test Accuracy')
+plt.plot(list(range(1, p.epochs + 1)), test_accus, 'g-', linewidth=2.0, markersize=5.0, marker='o', label='Test Accuracy')
 plt.legend(loc='lower right')
 plt.savefig('Test-Statistics-MNIST-dropout-{}-batchnorm-{}-activation-{}-init-{}.png'.format(
-            p.dropout_prob, p.batch_norm, p.activation, p.init_scheme), dpi=100)
-
-plt.clf()
-plt.figure(figsize=(12, 10))
-plt.plot(list(range(n_iters)), train_loss_log, label='Training loss variation')
-plt.legend(loc='upper right')
-plt.savefig('Training-loss-variation-MNIST-dropout-{}-batchnorm-{}-activation-{}-init-{}.png'.format(
             p.dropout_prob, p.batch_norm, p.activation, p.init_scheme), dpi=100)
