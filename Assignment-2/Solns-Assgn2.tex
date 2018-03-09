@@ -192,4 +192,28 @@ Graphically, the variation is shown below (L: Train, R: Test):
 \end{figure}
 \end{minipage}
 \end{flushleft}
+
+\subsection*{Part g}
+\begin{flushleft}
+The architecture, epochs trained for and the training and testing accuracies are tabulated below. The loss function is consideration is the binary-cross entropy loss.
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+Architecture & Epochs Trained for & Training Accuracy & Testing Accuracy \\
+\hline
+\texttt{5 - 3 - 2 - 1} & 225 & \(\approx 98.9\%\) & \(\approx 98.1\%\)\\
+\hline
+\texttt{5 - 2 - 2 - 1} & 225 & \(\approx 98.9\%\) & \(\approx 99.1\%\)\\
+\hline
+\texttt{5 - 10 - 5 - 1} & 100 & \(\approx 98.9\%\) & \(\approx 98.9\%\)\\
+\hline
+\texttt{5 - 2 - 3 - 1} & 190 & \(\approx 98.9\%\) & \(\approx 99.1\%\)\\
+\hline
+\texttt{5 - 10 - 1} & 75 & \(\approx 98.8\%\) & \(\approx 99.2\%\)\\
+\hline
+\end{tabular}
+\end{center}
+
+From the table, it can be seen that multi-hidden-layer neural networks have a (little) better training accuracy than the single layer neural networks. Maybe, because of the over-parameterization, there is a reason of that very small dip in testing accuracy. I use the Adam Optimizer with a global learning rate of \(3 \times 10^{-4}\).
+\end{flushleft}
 \end{document}
