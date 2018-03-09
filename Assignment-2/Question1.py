@@ -2,20 +2,23 @@ import yaml
 import torch as t
 import pandas as pd
 import torch.nn as nn
-from argparse import ArgumentParser
+from numpy import genfromtxt
 from matplotlib import pyplot as plt
 from torch.autograd import Variable as V
 from torch.utils.data import TensorDataset, DataLoader
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
+t.set_rng_state(t.load("random-state.pt"))
 
 CUDA_CHECK = t.cuda.is_available()
 
-p = ArgumentParser()
+p = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 p.add_argument('--train_data_loc', type=str, required=True, help='Root location for the training data')
 p.add_argument('--test_data_loc', type=str, required=True, help='Root location for the testing data')
 p.add_argument('--batch_size', type=int, default=100, help='Batch size for the training')
 p.add_argument('--opt_det', type=str, required=True, help='Root location for the Optimizer details stored as YAML')
 p.add_argument('--layer_info', type=str, required=True, help='Root location for CSV file with MLP layer information')
-p.add_argument('--activation', type=str, default='relu', help='Activation for hidden layers')
+p.add_argument('--activation', type=str, default='sigmoid', help='Activation for hidden layers')
 p.add_argument('--loss', type=str, default='bce', help='Loss function')
 p.add_argument('--epochs', type=int, default=5, help='Number of epochs to train for')
 p.add_argument('--baseline', action='store_true', help='Get a weighted baseline')
@@ -37,16 +40,18 @@ te_dataset = TensorDataset(data_tensor=t.from_numpy(test_data[:, :-1]).type(t.Fl
 del train_data
 del test_data
 
-tr_loader = DataLoader(tr_dataset, batch_size=p.batch_size, shuffle=True)
+batch_size = len(tr_dataset) if p.batch_size == -1 else p.batch_size
+
+tr_loader = DataLoader(tr_dataset, batch_size=batch_size, shuffle=True)
 te_loader = DataLoader(te_dataset, batch_size=1000, shuffle=True)
 
 # Build your network
 main_network = nn.Sequential()
-layer_list = np.genfromtxt(p.layer_info, delimiter=',', dtype=int)
+layer_list = genfromtxt(p.layer_info, delimiter=',')
 
 for i in range(0, len(layer_list) - 1):
     main_network.add_module('Linear-{0}-{1}-{2}'.format(i, layer_list[i], layer_list[i + 1]),
-                            nn.Linear(layer_list[i], layer_list[i + 1]))
+                            nn.Linear(int(layer_list[i]), int(layer_list[i + 1])))
 
     if i != len(layer_list) - 2:
         if p.activation == 'relu':
@@ -102,7 +107,7 @@ for e in range(0, p.epochs):
         y = V(y)
         outputs = main_network(x)
         cur_loss = loss(outputs, y)
-        if n_iters % 500 == 0:
+        if n_iters % 5 == 0:
             print(round(cur_loss.data[0], 5))
         cur_loss.backward()
         optimizer.step()
@@ -173,7 +178,7 @@ if p.baseline:
     baseline_error = (random_predictions - tr_dataset.target_tensor).abs().mean()
     plt.plot(list(range(1, p.epochs + 1)), [baseline_error] * p.epochs, 'r--', linewidth=2.0, label='Baseline')
 plt.legend(loc='upper right')
-plt.savefig('Train-Statistics-SGD-batchsize={}.png'.format(p.batch_size), dpi=100)
+plt.savefig('Train-Statistics-{}-batchsize={}-{}.png'.format(optim_yaml['name'], batch_size, p.loss), dpi=100)
 
 plt.clf()
 plt.figure(figsize=(12, 10))
@@ -196,6 +201,6 @@ if p.baseline:
     baseline_error = (random_predictions - te_dataset.target_tensor).abs().mean()
     plt.plot(list(range(1, p.epochs + 1)), [baseline_error] * p.epochs, 'r--', linewidth=2.0, label='Baseline')
 plt.legend(loc='upper right')
-plt.savefig('Test-Statistics-SGD-batchsize={}.png'.format(p.batch_size), dpi=100)
+plt.savefig('Test-Statistics-{}-batchsize={}-{}.png'.format(optim_yaml['name'], batch_size, p.loss), dpi=100)
 
 print("Final Results:\nTraining Accuracy: {}\nTesting Accuracy: {}".format(1 - train_errors[-1], 1 - test_errors[-1]))

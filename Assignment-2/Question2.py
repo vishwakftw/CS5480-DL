@@ -2,12 +2,12 @@ import torch as t
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-from argparse import ArgumentParser
 from matplotlib import pyplot as plt
 from torchvision.datasets import MNIST
 from torch.utils.data import DataLoader
 from torch.autograd import Variable as V
 from torchvision.transforms import Compose, ToTensor, Normalize
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 def weights_init(m, scheme='randn'):
     if scheme == 'uni':
@@ -63,7 +63,7 @@ class Net(nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x)
 
-p = ArgumentParser()
+p = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 p.add_argument('--root', required=True, type=str, help='Root location for the dataset')
 p.add_argument('--lr', default=1e-04, type=float, help='Learning rate for SGD')
 p.add_argument('--batch_size', default=64, type=int, help='Batch Size')
