@@ -63,12 +63,14 @@ class Net(nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x)
 
+t.set_rng_state(t.load("random-state.pt"))
+
 p = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 p.add_argument('--root', required=True, type=str, help='Root location for the dataset')
 p.add_argument('--lr', default=1e-04, type=float, help='Learning rate for SGD')
 p.add_argument('--batch_size', default=64, type=int, help='Batch Size')
 p.add_argument('--activation', default='relu', type=str, help='Activation function')
-p.add_argument('--dropout_prob', default=0.25, type=float, help='Dropout probability')
+p.add_argument('--dropout_prob', default=0.5, type=float, help='Dropout probability')
 p.add_argument('--batch_norm', action='store_true', help='Toggle to include Batch Normalization')
 p.add_argument('--init_scheme', default=None, type=str, help='Initialization scheme:\nRandom Normal:\
                                                       \'randn\'\nXavier: \'xavier\'\nKaiming: \'kaiming\'')
@@ -93,7 +95,7 @@ if CUDA_CHECK:
     model = model.cuda()
     loss = loss.cuda()
 
-optimizer = t.optim.SGD(model.parameters(), lr=p.lr, weight_decay=1e-04)
+optimizer = t.optim.SGD(model.parameters(), lr=p.lr, weight_decay=1e-04, momentum=0.9)
 
 # Build the training loop
 n_iters = 0
@@ -186,3 +188,6 @@ plt.plot(list(range(1, p.epochs + 1)), test_accus, 'g-', linewidth=2.0, markersi
 plt.legend(loc='lower right')
 plt.savefig('Test-Statistics-MNIST-dropout-{}-batchnorm-{}-activation-{}-init-{}.png'.format(
             p.dropout_prob, p.batch_norm, p.activation, p.init_scheme), dpi=100)
+
+print("Final Results:\nTraining Accuracy: {}\nTesting Accuracy: {}".format(
+      round(train_accus[-1], 5), round(test_accus[-1], 5)))
