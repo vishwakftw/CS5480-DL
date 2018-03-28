@@ -1,8 +1,9 @@
 # pdflatex generated files
-*.pdf
 *.aux
 *.log
 *.out
+*.bbl
+*.xml
 
 # Dataset files
 *.pt
