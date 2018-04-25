@@ -9,3 +9,6 @@
 *.pt
 *byte
 *.txt
+
+# Pycache files
+__pycache__/
