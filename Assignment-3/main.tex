@@ -1,0 +1,56 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\newcommand{\Do}{\partial}
+
+\graphicspath{{images/}}
+
+\title{Solutions to the Assignment - 3 : CS5480 - \\
+Deep Learning}
+\author{Vishwak Srinivasan\\
+\texttt{CS15BTECH11043}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Question 1}
+\begin{flushleft}
+The sample text used for this purpose is a 1565 character lyric of the song ``Speed of Sound'' by Coldplay. The lyrics were obtained from the website \href{https://songmeanings.com}{SongMeanings}.
+
+There were 42 distinct characters.
+\end{flushleft}
+
+\section*{Question 2}
+\subsection*{Part a}
+\begin{flushleft}
+Denote the hidden state at time \(t\) by \(h_{t}\), and the output by \(o_{t}\) and the input as \(x_{t}\). The notation for the weights will follow from the question. The question expects no biases, hence the equations will not contain them.
+\begin{itemize}
+\item [\textbf{i.}]
+\begin{gather}
+\text{Hidden Layer with activation: }h_{t} = \tanh(W_{xh}x_{t} + W_{hh}h_{t-1}) \\
+\text{Output Layer without activation: }\hat{o}_{t} = W_{ho}h_{t} \\
+\text{Output Layer with activation: }o_{t} = \mathrm{softmax}(\hat{o}_{t})
+\end{gather}
+
+where \(\mathrm{softmax}(\mathbf{z}) = \frac{1}{\displaystyle \sum_{j} \exp(z_{j})}\langle \ldots, \exp(z_{i}), \ldots \rangle\).
+
+\item [\textbf{ii.}]
+Consider the travel to \(k^{th}\) timestep. Consider a simple cross-entropy loss.
+\begin{equation} 
+\frac{\Do E_{k}}{\Do W_{hh}} = \frac{\Do E_{k}}{\Do o_{k}} \frac{\Do o_{k}}{\Do h_{k}} \frac{\Do h_{k}}{\Do W_{hh}}
+\end{equation}
+Now note that \(h_{k} = \tanh(W_{xh}x_{k} + W_{hh}h_{k-1}) = \tanh(W_{xh}x_{k} + W_{hh}(\tanh(W_{xh}x_{k-1} + W_{hh}h_{k-2}))\) and so on. By chain rule:
+\begin{gather}
+\frac{\Do E_{k}}{\Do W_{hh}} = \frac{\Do E_{k}}{\Do o_{k}} \frac{\Do o_{k}}{\Do h_{k}} \left(\frac{\Do h_{k}}{\Do h_{k-1}} \frac{\Do h_{k-1}}{\Do W_{hh}} + \frac{\Do h_{k}}{\Do h_{k-2}} \frac{\Do h_{k-2}}{\Do W_{hh}} + \ldots \right) \\
+\implies \frac{\Do E_{k}}{\Do W_{hh}} = \displaystyle \sum_{j=0}^{k} \frac{\Do E_{k}}{\Do o_{k}} \frac{\Do o_{k}}{\Do h_{k}} \frac{\Do h_{k}}{\Do h_{j}} \frac{\Do h_{j}}{W_{hh}}
+\end{gather}
+\end{itemize}
+\end{flushleft}
+
+\end{document}

@@ -1,39 +1,30 @@
 import numpy as np
 
-def get_char_encoding(char_set):
+def get_char_to_encoding(char_list):
     """
-    Function to obtain per character encodings in a vector form
+    Function to obtain characters --> encodings
 
     Args:
-        char_set    : Set of characters (array / set)
+        char_set    : List of characters
     Returns:
-        dictionary with the representations
+        char_encoding
     """
-    char_encoding = {}
-    for char in char_set:
-        x = np.zeros(256)
-        x[ord(char)] = 1
-        char_encoding[char] = x
+    char_encoding = []
+    for c in char_list:
+        char_encoding.append(ord(c))
     return char_encoding
 
 
-def get_text_encoding(text_file):
+def get_encoding_to_char(enc_list):
     """
-    Pass a file name to get the minimalistic character-one-hot-representation
+    Function to obtain encodings --> characters
 
     Args:
-        text_file   : Name of text file
+        enc_set    : List of encodings
     Returns:
-        Matrix with representations
+        char_list
     """
-    f = open(text_file)
-    all_text = f.read()
-    char_set = set(all_text)
-    char_encoding = get_char_encoding(char_set)
-    char_matrix = None
-    for c in all_text:
-        if char_matrix is None:
-            char_matrix = char_encoding[c].reshape(1, -1)
-        else:
-            char_matrix = np.vstack([char_matrix, char_encoding[c].reshape(1, -1)])
-    return char_matrix
+    char_list = []
+    for e in enc_list:
+        char_list.append(chr(e))
+    return char_list
