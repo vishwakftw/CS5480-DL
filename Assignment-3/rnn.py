@@ -28,9 +28,9 @@ class myRNN(object):
         # Initialize weights
         fan_in, fan_out = vocab_size, hidden_size
         factor = np.sqrt(2 / (fan_in + fan_out))
-        self.Wxh = np.random.uniform(-factor, factor)
-        self.Whh = np.random.uniform(-factor, factor)
-        self.Who = np.random.uniform(-factor, factor)
+        self.Wxh = np.random.uniform(-factor, factor, size=(self.hidden_size, self.vocab_size))
+        self.Whh = np.random.uniform(-factor, factor, size=(self.hidden_size, self.hidden_size))
+        self.Who = np.random.uniform(-factor, factor, size=(self.vocab_size, self.hidden_size))
 
     def forward(self, inputs, previous_hidden_state):
         """
@@ -44,7 +44,7 @@ class myRNN(object):
         """
         hidden_states = {}
         prob_outputs = {}
-        hidden_states[-1] = np.copy(previous_hidden_state.reshape(-1, 1))
+        hidden_states[-1] = np.copy(previous_hidden_state)
         for t in range(0, len(inputs)):
             inputs_ = np.zeros(self.vocab_size)
             inputs_[inputs[t]] = 1
@@ -63,7 +63,7 @@ class myRNN(object):
             targets     : sequence of actual targets (integers ASCII ordinal)
         """
         loss = 0.0
-        for t in range(0, targets):
+        for t in range(0, len(targets)):
             loss += -np.log(pred_probs[t][targets[t]])
         return loss
 
@@ -79,9 +79,9 @@ class myRNN(object):
             loss, gradients, last_hidden_state  : Loss value, gradients (tuple) and last hidden state
         """
         hidden_states, char_probs = self.forward(inputs, previous_hidden_state)
-        cur_loss = loss(char_probs, targets)
+        cur_loss = self.loss(char_probs, targets)
         grad_Wxh, grad_Whh, grad_Who = np.zeros(self.Wxh.shape), np.zeros(self.Whh.shape), np.zeros(self.Who.shape)
-        do_dh_next_timestep = np.zeros(hidden_states[0])
+        do_dh_next_timestep = np.zeros(hidden_states[0].shape)
         for t in range(len(inputs) - 1, 0, -1):
             delta_output = np.copy(char_probs[t])
 
@@ -100,11 +100,12 @@ class myRNN(object):
             inputs_ = inputs_.reshape(-1, 1)
             grad_Wxh += np.matmul(do_dh, inputs_.T)
             grad_Whh += np.matmul(do_dh, hidden_states[t - 1].T)
-            do_dh_next_timestep = np.matmul(Whh.T, do_dh)
+            do_dh_next_timestep = np.matmul(self.Whh.T, do_dh)
 
-        grad_Wxh = grad_Wxh.clip(min=-5, max=5)
-        grad_Whh = grad_Whh.clip(min=-5, max=5)
-        grad_Who = grad_Who.clip(min=-5, max=5)
+        # Clipping the gradients to avoid gradient explode
+        grad_Wxh = grad_Wxh.clip(min=-1, max=1)
+        grad_Whh = grad_Whh.clip(min=-1, max=1)
+        grad_Who = grad_Who.clip(min=-1, max=1)
 
         return cur_loss, (grad_Wxh, grad_Whh, grad_Who), hidden_states[len(inputs) - 1]
 
@@ -122,8 +123,8 @@ class myRNN(object):
             Sequence of integers (ASCII ordinals)
         """
         inp = np.zeros(self.vocab_size)
-        inp = inp.reshape(-1, 1)
         inp[seed] = 1
+        inp = inp.reshape(-1, 1)
         char_vals = []
         for t in range(0, n):
             hidden_state = np.tanh(np.matmul(self.Wxh, inp) + np.matmul(self.Whh, hidden_state))
@@ -131,13 +132,13 @@ class myRNN(object):
             otp = softmax(otp)
             # We take the characters in a soft manner, not a hard manner
             if choice == 'soft':
-                char = np.random.choice(self.vocab_size, p=otp.reshape(-1))
+                char = np.random.choice(list(range(self.vocab_size)), p=otp.ravel())
             elif choice == 'hard':
                 char = np.argmax(otp.reshape(-1))
 
             char_vals.append(char)
             # make the next input
             inp = np.zeros(self.vocab_size)
-            inp = inp.reshape(-1)
             inp[char] = 1
+            inp = inp.reshape(-1, 1)
         return char_vals
