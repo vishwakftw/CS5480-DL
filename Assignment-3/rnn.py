@@ -109,7 +109,7 @@ class myRNN(object):
 
         return cur_loss, (grad_Wxh, grad_Whh, grad_Who), hidden_states[len(inputs) - 1]
 
-    def get(self, seed, hidden_state, n, choice='soft'):
+    def get(self, seed, hidden_state, n, choice='hard'):
         """
         Function to get some characters from the model
 
