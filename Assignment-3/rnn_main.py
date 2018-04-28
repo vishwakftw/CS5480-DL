@@ -2,6 +2,7 @@ import text
 import numpy as np
 
 from rnn import myRNN
+from matplotlib import pyplot as plt
 from argparse import ArgumentParser as AP
 
 REG_FACT = 1e-04
@@ -18,6 +19,7 @@ p.add_argument('--hidden', type=int, default=250, help='Number of dimensions in 
 p.add_argument('--hidden_init', type=str, default='zeros', choices=['random', 'zeros'], help='Initialize the hidden state')
 p.add_argument('--checkpoint_interval', type=int, default=20, help='Checkpoint (i.e., generate) every certain epochs')
 p.add_argument('--choice', type=str, default='soft', help='Selection of character (soft / hard)')
+p.add_argument('--graph', action='store_true', help='Toggle to save a graph at the end of training')
 p = p.parse_args()
 
 RNN = myRNN(vocab_size=VOCAB_SIZE, hidden_size=p.hidden, temperature=p.temperature)
@@ -37,6 +39,7 @@ if p.hidden_init == 'zeros':
 if p.hidden_init == 'random':
     hidden_state = np.random.randn(p.hidden).reshape(-1, 1)
 
+losses = []
 while True:
     try:
         if pointer + p.seq_length + 1 >= text_len:    # we don't have enough inputs, we take it till the end
@@ -60,6 +63,8 @@ while True:
 
         # Training
         loss, grads, hidden_state = RNN.backward(inputs=inputs, targets=targets, previous_hidden_state=hidden_state)
+        if p.graph and pointer == 0:
+            losses.append(loss)
         iters += 1
 
         if VERBOSE:
@@ -88,3 +93,9 @@ hidden_state = np.zeros(p.hidden).reshape(-1, 1)
 gen_text = RNN.get(seed=encoded_text[0], hidden_state=hidden_state, n=text_len - 1, choice=p.choice)
 act_text = text.get_encoding_to_char(gen_text)
 print("".join(act_text))
+
+if p.graph:
+    plt.figure(figsize=(12, 10))
+    plt.title("Variation of loss with iterations")
+    plt.plot(range(1, len(losses) + 1), losses, 'b', linewidth=3.0)
+    plt.savefig('RNN_training.png', dpi=100)

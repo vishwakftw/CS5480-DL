@@ -1,12 +1,13 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
-\usepackage[margin=0.7in]{geometry}
+\usepackage[margin=0.8in]{geometry}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{hyperref}
 \newcommand{\Do}{\partial}
+\newcommand{\G}{\nabla}
 
 \graphicspath{{images/}}
 
@@ -34,22 +35,55 @@ Denote the hidden state at time \(t\) by \(h_{t}\), and the output by \(o_{t}\) 
 \item [\textbf{i.}]
 \begin{gather}
 \text{Hidden Layer with activation: }h_{t} = \tanh(W_{xh}x_{t} + W_{hh}h_{t-1}) \\
-\text{Output Layer without activation: }\hat{o}_{t} = W_{ho}h_{t} \\
-\text{Output Layer with activation: }o_{t} = \mathrm{softmax}(\hat{o}_{t})
+\text{Output Layer without activation: }o_{t} = W_{ho}h_{t} \\
+\text{Output Layer with activation: }\hat{y}_{t} = \mathrm{softmax}(o_{t})
 \end{gather}
-
-where \(\mathrm{softmax}(\mathbf{z}) = \frac{1}{\displaystyle \sum_{j} \exp(z_{j})}\langle \ldots, \exp(z_{i}), \ldots \rangle\).
 
 \item [\textbf{ii.}]
-Consider the travel to \(k^{th}\) timestep. Consider a simple cross-entropy loss.
-\begin{equation} 
-\frac{\Do E_{k}}{\Do W_{hh}} = \frac{\Do E_{k}}{\Do o_{k}} \frac{\Do o_{k}}{\Do h_{k}} \frac{\Do h_{k}}{\Do W_{hh}}
+Denote the outer-product operator as \(\otimes\) and the Hadamard product as \(\odot\).
+
+Since we are considering a cross-entropy loss (denoted by \(L\)), it is easy to see that the gradient with respect to the logits i.e., \(\hat{o}_{t}\), can be given by:
+\begin{equation}
+\left(\G_{o^{t}} L\right)_{i} = \frac{\Do L}{\Do L^{t}} \frac{\Do L^{t}}{\Do o_{i}^{t}} = \hat{y}_{i}^{t} - \mathbf{1}_{i = y^{t}}
 \end{equation}
-Now note that \(h_{k} = \tanh(W_{xh}x_{k} + W_{hh}h_{k-1}) = \tanh(W_{xh}x_{k} + W_{hh}(\tanh(W_{xh}x_{k-1} + W_{hh}h_{k-2}))\) and so on. By chain rule:
+where \(\mathbf{1}_{p}\) denotes \(1\) if predicate \(p\) is satisfied and \(0\) otherwise.
+
+Similarly, backpropping to the hidden state \(h_{t}\) gives us (using matrix calculus):
+\begin{equation}
+\label{hidden}
+\G_{h^{t - 1}} L = \left(\frac{\Do h^{t}}{\Do h^{t - 1}}\right)^{T} (\G_{h^{t}} L) + \left(\frac{\Do o^{t - 1}}{\Do h^{t - 1}}\right)^{T} (\G_{o^{t - 1}} L) = W^{T} (\G_{h^{t}} L) \odot (1 - (h^{t})^{2}) + W_{ho}^{T} (\G_{o^{t - 1}} L)
+\end{equation}
+
+Now, say we go back to timestep \(k\) from timestep \(T\) backward. Due to this, by standard backprop through time, we get:
 \begin{gather}
-\frac{\Do E_{k}}{\Do W_{hh}} = \frac{\Do E_{k}}{\Do o_{k}} \frac{\Do o_{k}}{\Do h_{k}} \left(\frac{\Do h_{k}}{\Do h_{k-1}} \frac{\Do h_{k-1}}{\Do W_{hh}} + \frac{\Do h_{k}}{\Do h_{k-2}} \frac{\Do h_{k-2}}{\Do W_{hh}} + \ldots \right) \\
-\implies \frac{\Do E_{k}}{\Do W_{hh}} = \displaystyle \sum_{j=0}^{k} \frac{\Do E_{k}}{\Do o_{k}} \frac{\Do o_{k}}{\Do h_{k}} \frac{\Do h_{k}}{\Do h_{j}} \frac{\Do h_{j}}{W_{hh}}
+\displaystyle \G_{W_{ho}} L = \sum_{t=T}^{t=k} \sum_{i} \frac{\Do L}{\Do o_{i}^{t}} \G_{W_{ho}} o_{i}^{t} = \sum_{t=T}^{t=k} (\G_{o^{t}} L) (h^{t})^{T} = \sum_{t=T}^{t=k} (\G_{o^{t}} L) \otimes h^{t} \\
+\label{hidden-full}
+\displaystyle \G_{W_{hh}} L = \sum_{t=T}^{t=k} \sum_{i} \frac{\Do L}{\Do h_{i}^{t}} \G_{W_{hh}} h_{i}^{t} = (1 - (h^{t})^{2}) \odot \left((\G_{h^{t}} L) \otimes (h^{t-1})^{T}\right) \\
+\displaystyle \G_{W_{xh}} L = \sum_{t=T}^{t=k} \sum_{i} \frac{\Do L}{\Do h_{i}^{t}} \G_{W_{xh}} h_{i}^{t} = (1 - (h^{t})^{2}) \odot \left((\G_{h^{t}} L) \otimes x^{t}\right)
 \end{gather}
+
+Some points:
+\begin{itemize}
+\item The terms \(1 - (h^{t})^{2}\) which occur in \ref{hidden}, \ref{hidden-full} are due to the \(\tanh\) non-linearity. The derivative of the \(\tanh\) function is \(1 - \tanh^{2}(z)\).
+\end{itemize}
+
+Now the weight update rule is simple:
+\begin{gather}
+\displaystyle W_{ho} := W_{ho} - \eta \G_{W_{ho}}L = W_{ho} - \eta \sum_{t=T}^{t=k} (\G_{o^{t}} L) \otimes h^{t} \\
+\displaystyle W_{hh} := W_{ho} - \eta \G_{W_{hh}}L = W_{hh} - \eta \sum_{t=T}^{t=k} (1 - (h^{t})^{2}) \odot \left((\G_{h^{t}} L) \otimes (h^{t-1})^{T}\right) \\
+\displaystyle W_{xh} := W_{xh} - \eta \G_{W_{xh}}L = W_{xh} - \eta \sum_{t=T}^{t=k} (1 - (h^{t})^{2}) \odot \left((\G_{h^{t}} L) \otimes x^{t}\right)
+\end{gather}
+\end{itemize}
+\end{flushleft}
+
+\subsection*{Part b}
+\begin{flushleft}
+\begin{itemize}
+\item [\textbf{i.}] The network is trained using standard gradient descent, with a weight decay. Additionally, there is a provision to stop back-propagating beyond a certain to avoid vanishing gradients. To prevent exploding gradients, the gradients are clipped to have values between -2 and 2 only. The weight decay parameter is chosen to be \(10^{-4}\) and the learning rate is \(3\times 10^{-4}\). Below is the graph of training loss vs. number of epochs for 25 epochs.
+
+% Insert graph.
+\item [\textbf{ii.}]
+\item [\textbf{iii.}]
 \end{itemize}
 \end{flushleft}
 
