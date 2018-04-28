@@ -5,8 +5,8 @@ def softmax(x, T=1):
     """
     Computes softmax for a vector x, with temperature T
     """
-    tmp = np.exp(x) / T
-    return tmp / (tmp.sum() / T)
+    tmp = np.exp(x / T)
+    return tmp / (tmp.sum())
 
 
 class myRNN(object):
@@ -103,9 +103,9 @@ class myRNN(object):
             do_dh_next_timestep = np.matmul(self.Whh.T, do_dh)
 
         # Clipping the gradients to avoid gradient explode
-        grad_Wxh = grad_Wxh.clip(min=-1, max=1)
-        grad_Whh = grad_Whh.clip(min=-1, max=1)
-        grad_Who = grad_Who.clip(min=-1, max=1)
+        grad_Wxh = grad_Wxh.clip(min=-2, max=2)
+        grad_Whh = grad_Whh.clip(min=-2, max=2)
+        grad_Who = grad_Who.clip(min=-2, max=2)
 
         return cur_loss, (grad_Wxh, grad_Whh, grad_Who), hidden_states[len(inputs) - 1]
 

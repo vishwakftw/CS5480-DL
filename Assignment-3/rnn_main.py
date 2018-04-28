@@ -7,7 +7,7 @@ from argparse import ArgumentParser as AP
 
 REG_FACT = 1e-04
 VERBOSE = False
-VOCAB_SIZE=128
+VOCAB_SIZE = 128
 
 p = AP()
 p.add_argument('--seq_length', type=int, default=25, help='Length of unrolled RNN sequence')
@@ -18,8 +18,9 @@ p.add_argument('--text_src', type=str, required=True, help='Text source to read 
 p.add_argument('--hidden', type=int, default=250, help='Number of dimensions in the hidden layer')
 p.add_argument('--hidden_init', type=str, default='zeros', choices=['random', 'zeros'], help='Initialize the hidden state')
 p.add_argument('--checkpoint_interval', type=int, default=20, help='Checkpoint (i.e., generate) every certain epochs')
-p.add_argument('--choice', type=str, default='soft', help='Selection of character (soft / hard)')
+p.add_argument('--choice', type=str, default='hard', help='Selection of character (soft / hard)')
 p.add_argument('--graph', action='store_true', help='Toggle to save a graph at the end of training')
+p.add_argument('--nsample', type=int, default=100, help='Number of characters')
 p = p.parse_args()
 
 RNN = myRNN(vocab_size=VOCAB_SIZE, hidden_size=p.hidden, temperature=p.temperature)
@@ -75,10 +76,12 @@ while True:
         RNN.Whh -= p.lr * (grads[1] + REG_FACT * RNN.Whh)
         RNN.Who -= p.lr * (grads[2] + REG_FACT * RNN.Who)
 
-        if epoch % p.checkpoint_interval == 0 and pointer == 0:
-            gen_text = RNN.get(seed=inputs[0], hidden_state=hidden_state, n=100, choice=p.choice)
+        if epoch % p.checkpoint_interval == 0 and pointer == 0 and epoch != 0:
+            print("##### Checkpoint start : Epoch {} #####".format(epoch))
+            gen_text = RNN.get(seed=encoded_text[0], hidden_state=hidden_state, n=p.nsample, choice=p.choice)
             act_text = text.get_encoding_to_char(gen_text)
             print("".join(act_text))
+            print("##### Checkpoint end : Epoch {} #####".format(epoch))
 
         if epoch == p.epochs:
             break
@@ -86,16 +89,10 @@ while True:
         pointer += p.seq_length
 
     except KeyboardInterrupt:
-        print("Aborting training...Generating text")
         break
-
-hidden_state = np.zeros(p.hidden).reshape(-1, 1)
-gen_text = RNN.get(seed=encoded_text[0], hidden_state=hidden_state, n=text_len - 1, choice=p.choice)
-act_text = text.get_encoding_to_char(gen_text)
-print("".join(act_text))
 
 if p.graph:
     plt.figure(figsize=(12, 10))
-    plt.title("Variation of loss with iterations")
+    plt.title("Variation of loss with epochs", fontsize=15)
     plt.plot(range(1, len(losses) + 1), losses, 'b', linewidth=3.0)
     plt.savefig('RNN_training.png', dpi=100)
