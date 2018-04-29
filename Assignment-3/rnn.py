@@ -34,7 +34,7 @@ class myRNN(object):
 
     def forward(self, inputs, previous_hidden_state):
         """
-        Function to take in one-hot-encoded inputs, and the previous hidden state
+        Function to take in sequence of integer inputs, and the previous hidden state
 
         Args:
             inputs      : Sequence of characters (integers ASCII ordinal)
@@ -102,7 +102,7 @@ class myRNN(object):
             grad_Whh += np.matmul(do_dh, hidden_states[t - 1].T)
             do_dh_next_timestep = np.matmul(self.Whh.T, do_dh)
 
-        # Clipping the gradients to avoid gradient explode
+        # Clipping the gradients to avoid gradient explosion
         grad_Wxh = grad_Wxh.clip(min=-2, max=2)
         grad_Whh = grad_Whh.clip(min=-2, max=2)
         grad_Who = grad_Who.clip(min=-2, max=2)

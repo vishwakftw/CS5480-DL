@@ -80,7 +80,7 @@ Now the weight update rule is simple:
 \subsection*{Part b}
 \begin{flushleft}
 \begin{itemize}
-\item [\textbf{i.}] The network is trained using standard gradient descent, with a weight decay. Additionally, there is a provision to stop back-propagating beyond a certain to avoid vanishing gradients. To prevent exploding gradients, the gradients are clipped to have values between -2 and 2 only. The weight decay parameter is chosen to be \(10^{-4}\) and the learning rate is \(2\times 10^{-3}\). Below is the graph of training loss vs. number of epochs for 100 epochs. The sequence length taken was 50 (to get some comprehensible phrases). Number of hidden units is 250.
+\item [\textbf{i.}] The network is trained using standard gradient descent, with a weight decay. To prevent exploding gradients, the gradients are clipped to have values between -2 and 2 only. The weight decay parameter is chosen to be \(10^{-4}\) and the learning rate is \(2\times 10^{-3}\). Below is the graph of training loss vs. number of epochs for 100 epochs. The sequence length taken was 50 (to get some comprehensible phrases). Number of hidden units is 250.
 
 \begin{figure}[H]
 \centering
@@ -265,5 +265,33 @@ Below is the training curve and sample text for half the sequence length taken e
 \end{itemize}
 
 Increasing the sequence length, helps the RNN remember longer sequences effectively. This is why despite the same number of hidden units, the quality of the text sampled is good.
+\end{flushleft}
+
+\section*{Question 3}
+\begin{flushleft}
+My solution is based on this diagram:
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\linewidth]{lstm-map.png}
+\end{figure}
+
+The network is trained using standard gradient descent, with a weight decay. To prevent exploding gradients, the gradients are clipped to have values between -2 and 2 only. The weight decay parameter is chosen to be \(10^{-4}\) and the learning rate is 0.1. Number of hidden units is 100. Below is the training curve:
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{LSTM_training.png}
+\end{figure}
+
+100 length text obtained after training for 50 epochs are shown below:
+\begin{figure}[H]
+\begin{minipage}{0.475\textwidth}
+\centering
+\includegraphics[width=0.9\textwidth]{LSTM_text1.png}
+\end{minipage}
+\hfill
+\begin{minipage}{0.475\textwidth}
+\centering
+\includegraphics[width=0.9\textwidth]{LSTM_text2.png}
+\end{minipage}
+\end{figure}
 \end{flushleft}
 \end{document}
