@@ -1,6 +1,3 @@
-# CS5480-Project
-Project repository for CS5480: Deep Learning offered in Spring 2018
-
 ### Objectives of the Project
 -----------------------------
 

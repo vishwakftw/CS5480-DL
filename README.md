@@ -15,3 +15,6 @@ Coursework pertaining to CS5480 : Deep Learning offered in Spring 2018
 ### Assignment - 3
 + Code an RNN and LSTM using NumPy
 + Try on some data
+
+### Project
++ _Randomize everything Neural Networks_. Please view the `README.md` in the `Project` directory for more information.
